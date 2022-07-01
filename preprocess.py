@@ -10,6 +10,7 @@ import rectify_image
 import pcd_restore
 import json
 import numpy as np
+import math
 
 enable_lidar_restore = False
 
@@ -65,6 +66,8 @@ def generate_dataset(extrinsic_calib_path, dataset_path, timeslots, lidar_type="
     os.chdir(dataset_path)
 
     if lidar_type == 'restored':
+        if os.path.islink(os.path.join(dataset_path, "calib")):
+            os.system("rm calib")
         for camera in camera_list:
             prepare_dirs(os.path.join(dataset_path, "calib", "camera", camera))
             os.chdir(os.path.join(dataset_path, "calib", "camera", camera))
@@ -303,23 +306,45 @@ def calib_motion_compensate(output_path, extrinsic_calib_path):
             if os.path.exists(pose1file) and os.path.exists(pose2file):
 
                 with open(pose1file) as f:
-                    pose1 = json.load(f)
+                    pose1 = pcd_restore.formatpose(json.load(f))
                 with open(pose2file) as f:
-                    pose2  = json.load(f)
+                    pose2  = pcd_restore.formatpose(json.load(f))
 
-                translate = [float(pose2['x'])-float(pose1['x']), 
-                             float(pose2['y'])-float(pose1['y']), 
-                             float(pose1['z'])-float(pose2['z'])]  # lidar start -> lidar end            
-                rotation = [float(pose2['pitch'])- float(pose1['pitch']), 
-                            float(pose2['roll']) - float(pose1['roll']), 
-                            float(pose2['azimuth'])  - float(pose1['azimuth'])] #lidar start -> lidar end
+                # translate = [float(pose2['x'])-float(pose1['x']), 
+                #              float(pose2['y'])-float(pose1['y']), 
+                #              float(pose1['z'])-float(pose2['z'])]  # lidar start -> lidar end            
+                # rotation = [float(pose2['pitch'])- float(pose1['pitch']), 
+                #             float(pose2['roll']) - float(pose1['roll']), 
+                #             float(pose2['azimuth'])  - float(pose1['azimuth'])] #lidar start -> lidar end
 
-                translate_step = np.array(translate)/6
-                rotation_step = np.array(rotation)/6
+                delta = pcd_restore.utm_translate(pose1, pose2)
+
+                # euler angles cannot be subtracted directly
+                # but roll and pitch are near zero,
+                # this cause little error.
+
+                azimuth_delta = pose2["azimuth"] - pose1["azimuth"]
+
+                if azimuth_delta > math.pi:
+                    azimuth_delta -= math.pi * 2
+                elif azimuth_delta < -math.pi:
+                    azimuth_delta += math.pi * 2
+
+                # because our lidar have azimuth rotated by pi, relative to imu/ego frame.
+                # thus the pitch and roll are reversed in diretion.
+                pitch = - (pose2["pitch"] - pose1["pitch"])
+                roll  = - (pose2["roll"] - pose1["roll"])
+                
+                translate = delta[0:3]
+                rotation = [pitch, roll, azimuth_delta]
+
+                #print(translate, rotation)
+                translate_step = - np.array(translate)/6
+                rotation_step = - np.array(rotation)/6
 
                 for i in range(6):
                     lidar_0_to_lidar_c = pcd_restore.euler_angle_to_rotate_matrix(rotation_step*i,translate_step*i)
-                    extrinsic = np.matmul(lidar_0_to_lidar_c, np.reshape(np.array(static_calib[camera_in_order[i]]['extrinsic']),(4,4)))
+                    extrinsic = np.matmul(np.reshape(np.array(static_calib[camera_in_order[i]]['extrinsic']),(4,4)), lidar_0_to_lidar_c)
 
                     calib = {
                         'extrinsic': np.reshape(extrinsic,(-1)).tolist(),

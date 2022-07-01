@@ -92,6 +92,27 @@ def get_pcd_restore_bin():
 bin_pcd_restore = get_pcd_restore_bin()
 
 
+def lidar_pose_delta_by_utm_pose(pose1, pose2):
+    delta = utm_translate(pose1, pose2)
+
+    # euler angles cannot be subtracted directly
+    # but roll and pitch are near zero,
+    # this cause little error.
+
+    azimuth_delta = pose2["azimuth"] - pose1["azimuth"]
+
+    if azimuth_delta > math.pi:
+        azimuth_delta -= math.pi * 2
+    elif azimuth_delta < -math.pi:
+        azimuth_delta += math.pi * 2
+
+    # because our lidar have azimuth rotated by pi, relative to imu/ego frame.
+    # thus the pitch and roll are reversed in diretion.
+    pitch = - (pose2["pitch"] - pose1["pitch"])
+    roll  = - (pose2["roll"] - pose1["roll"])
+
+    return [delta[0], delta[1], delta[2], pitch, roll, azimuth_delta ]
+
 def pcd_restore(pcdfile, outputfile, pose1_file, pose2_file, timestamp):
     with open(pose1_file) as f:
         pose1 = formatpose(json.load(f))
