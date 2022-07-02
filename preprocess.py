@@ -444,7 +444,7 @@ if __name__ == "__main__":
                         lidar_pcd_restore(output_path)
                     
                     if func == "calib_motion_compensate" or (func =="all" and enable_lidar_restore):
-                        calib_motion_compensate(output_path, extrinsic_calib_path)
+                        calib_motion_compensate(output_path)
 
                     if func == "generate_dataset"  or func=="all":
                         dataset_name = "dataset_2hz"
