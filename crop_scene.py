@@ -80,8 +80,11 @@ def generate_dataset_links(src_data_folder, start_time, seconds):
     
     os.chdir("..")
     os.chdir("calib/camera")
+    
+    #link basic calibration parameters
+    os.system("ln -s ../../../../calib_2/camera/*.json ./")
+
     for camera in camera_list:
-        
         prepare_dirs(camera)
         os.chdir(camera)
 
@@ -94,8 +97,9 @@ def generate_dataset_links(src_data_folder, start_time, seconds):
     
 
     os.chdir("calib/aux_camera")
+    os.system("ln -s ../../../../calib_2/aux_camera/*.json ./")
+
     for camera in camera_list:
-        
         prepare_dirs(camera)
         os.chdir(camera)
 
@@ -106,7 +110,6 @@ def generate_dataset_links(src_data_folder, start_time, seconds):
 
     os.chdir("../..") #scene-xxx
 
-    pass
     os.chdir("lidar")
     for second in range(int(start_time), int(start_time) + int(seconds)):
         for slot in slots:
