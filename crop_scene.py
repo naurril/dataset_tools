@@ -44,6 +44,7 @@ def generate_dataset_links(src_data_folder, start_time, seconds):
     prepare_dirs('infrared_camera')
     prepare_dirs('ego_pose')
     prepare_dirs("calib/camera")
+    prepare_dirs("calib/aux_camera")
 
     # prepare_dirs(os.path.join(dataset_path, 'calib'))
     # prepare_dirs(os.path.join(dataset_path, 'calib/camera'))
