@@ -72,13 +72,13 @@ def generate_dataset(extrinsic_calib_path, dataset_path, timeslots, lidar_type="
             prepare_dirs(os.path.join(dataset_path, "calib", "camera", camera))
             os.chdir(os.path.join(dataset_path, "calib", "camera", camera))
             for slot in timeslots:
-                os.system("ln -s -f  ../../../../intermediate/calib_motion_compensated/camera/" + camera + "/*." + slot+".json  ./")
+                os.system("ln -s -f  ../../../../intermediate/calib_lidar_transform/camera/" + camera + "/*." + slot+".json  ./")
         
         for camera in camera_list:
             prepare_dirs(os.path.join(dataset_path, "calib", "aux_camera", camera))
             os.chdir(os.path.join(dataset_path, "calib", "aux_camera", camera))
             for slot in timeslots:
-                os.system("ln -s -f  ../../../../intermediate/calib_motion_compensated/aux_camera/" + camera + "/*." + slot+".json  ./")
+                os.system("ln -s -f  ../../../../intermediate/calib_lidar_transform/aux_camera/" + camera + "/*." + slot+".json  ./")
 
     else:
         os.system("ln -s -f " + os.path.relpath(extrinsic_calib_path) + " ./calib")
@@ -279,26 +279,30 @@ def lidar_pcd_restore(output_path):
                 print("pose file does not exist", timestamp, nexttimestamp)
     
 
-def calib_motion_compensate(output_path, extrinsic_calib_path):
-    dst_folder = os.path.join(output_path, "intermediate", "calib_motion_compensated")
+def calib_motion_compensate(output_path): #, extrinsic_calib_path):
+
+    if os.path.exists(os.path.join(output_path, "intermediate", "calib_motion_compensated")):
+        os.system("mv "+output_path+"/intermediate/calib_motion_compensated "+output_path+"/intermediate/calib_lidar_transform")
+
+    dst_folder = os.path.join(output_path, "intermediate", "calib_lidar_transform")
     if not os.path.exists(dst_folder):
         os.makedirs(dst_folder)
 
     src_folder = os.path.join(output_path, "intermediate", "lidar", "aligned")
 
 
-    static_calib_camera = {}
-    static_calib_aux_camera = {}
+    #static_calib_camera = {}
+    #static_calib_aux_camera = {}
     for camera in camera_list:
-        prepare_dirs(os.path.join(output_path, "intermediate", "calib_motion_compensated", "camera",  camera))
+        prepare_dirs(os.path.join(output_path, "intermediate", "calib_lidar_transform", "camera",  camera))
 
-        with open(os.path.join(extrinsic_calib_path,'camera',camera+".json")) as f:
-            static_calib_camera[camera] = json.load(f)
+        #with open(os.path.join(extrinsic_calib_path,'camera',camera+".json")) as f:
+        #    static_calib_camera[camera] = json.load(f)
         
-        prepare_dirs(os.path.join(output_path, "intermediate", "calib_motion_compensated", "aux_camera",  camera))
+        prepare_dirs(os.path.join(output_path, "intermediate", "calib_lidar_transform", "aux_camera",  camera))
 
-        with open(os.path.join(extrinsic_calib_path,'aux_camera',camera+".json")) as f:
-            static_calib_aux_camera[camera] = json.load(f)
+        #with open(os.path.join(extrinsic_calib_path,'aux_camera',camera+".json")) as f:
+        #    static_calib_aux_camera[camera] = json.load(f)
         
 
 
@@ -362,28 +366,27 @@ def calib_motion_compensate(output_path, extrinsic_calib_path):
                     
                     
                     #camera
-                    extrinsic = np.matmul(np.reshape(np.array(static_calib_camera[camera_in_order[i]]['extrinsic']),(4,4)), lidar_0_to_lidar_c)
+                    #extrinsic = np.matmul(np.reshape(np.array(static_calib_camera[camera_in_order[i]]['extrinsic']),(4,4)), lidar_0_to_lidar_c)
 
                     calib = {
-                        'extrinsic': np.reshape(extrinsic,(-1)).tolist(),
-                        'intrinsic': static_calib_camera[camera_in_order[i]]['intrinsic']
+                        'lidar_transform': np.reshape(lidar_0_to_lidar_c,(-1)).tolist(),
+                        #'intrinsic': static_calib_camera[camera_in_order[i]]['intrinsic']
                     }
 
                     #print(calib)
-                    with open(os.path.join(output_path,"intermediate", "calib_motion_compensated",'camera',camera_in_order[i], timestamp+".json"), 'w') as f:
+                    with open(os.path.join(output_path,"intermediate", "calib_lidar_transform",'camera',camera_in_order[i], timestamp+".json"), 'w') as f:
                         json.dump(calib, f, indent=2, sort_keys=True)
 
 
                     #infrared camera
-                    extrinsic = np.matmul(np.reshape(np.array(static_calib_aux_camera[camera_in_order[i]]['extrinsic']),(4,4)), lidar_0_to_lidar_c)
+                    #extrinsic = np.matmul(np.reshape(np.array(static_calib_aux_camera[camera_in_order[i]]['extrinsic']),(4,4)), lidar_0_to_lidar_c)
 
                     calib = {
-                        'extrinsic': np.reshape(extrinsic,(-1)).tolist(),
-                        'intrinsic': static_calib_aux_camera[camera_in_order[i]]['intrinsic']
+                        'lidar_transform': np.reshape(lidar_0_to_lidar_c,(-1)).tolist(),                        
                     }
 
                     #print(calib)
-                    with open(os.path.join(output_path,"intermediate", "calib_motion_compensated",'aux_camera',camera_in_order[i], timestamp+".json"), 'w') as f:
+                    with open(os.path.join(output_path,"intermediate", "calib_lidar_transform",'aux_camera',camera_in_order[i], timestamp+".json"), 'w') as f:
                         json.dump(calib, f, indent=2, sort_keys=True)
             else:
                 print("pose file does not exist", timestamp, nexttimestamp)
