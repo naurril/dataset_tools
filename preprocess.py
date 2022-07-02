@@ -280,12 +280,20 @@ def calib_motion_compensate(output_path, extrinsic_calib_path):
     src_folder = os.path.join(output_path, "intermediate", "lidar", "aligned")
 
 
-    static_calib = {}
+    static_calib_camera = {}
+    static_calib_aux_camera = {}
     for camera in camera_list:
         prepare_dirs(os.path.join(output_path, "intermediate", "calib_motion_compensated", "camera",  camera))
 
         with open(os.path.join(extrinsic_calib_path,'camera',camera+".json")) as f:
-            static_calib[camera] = json.load(f)
+            static_calib_camera[camera] = json.load(f)
+        
+        prepare_dirs(os.path.join(output_path, "intermediate", "calib_motion_compensated", "aux_camera",  camera))
+
+        with open(os.path.join(extrinsic_calib_path,'aux_camera',camera+".json")) as f:
+            static_calib_aux_camera[camera] = json.load(f)
+        
+
 
     files = os.listdir(src_folder)
     files.sort()
@@ -344,15 +352,31 @@ def calib_motion_compensate(output_path, extrinsic_calib_path):
 
                 for i in range(6):
                     lidar_0_to_lidar_c = pcd_restore.euler_angle_to_rotate_matrix(rotation_step*i,translate_step*i)
-                    extrinsic = np.matmul(np.reshape(np.array(static_calib[camera_in_order[i]]['extrinsic']),(4,4)), lidar_0_to_lidar_c)
+                    
+                    
+                    #camera
+                    extrinsic = np.matmul(np.reshape(np.array(static_calib_camera[camera_in_order[i]]['extrinsic']),(4,4)), lidar_0_to_lidar_c)
 
                     calib = {
                         'extrinsic': np.reshape(extrinsic,(-1)).tolist(),
-                        'intrinsic': static_calib[camera_in_order[i]]['intrinsic']
+                        'intrinsic': static_calib_camera[camera_in_order[i]]['intrinsic']
                     }
 
                     #print(calib)
                     with open(os.path.join(output_path,"intermediate", "calib_motion_compensated",'camera',camera_in_order[i], timestamp+".json"), 'w') as f:
+                        json.dump(calib, f, indent=2, sort_keys=True)
+
+
+                    #infrared camera
+                    extrinsic = np.matmul(np.reshape(np.array(static_calib_aux_camera[camera_in_order[i]]['extrinsic']),(4,4)), lidar_0_to_lidar_c)
+
+                    calib = {
+                        'extrinsic': np.reshape(extrinsic,(-1)).tolist(),
+                        'intrinsic': static_calib_aux_camera[camera_in_order[i]]['intrinsic']
+                    }
+
+                    #print(calib)
+                    with open(os.path.join(output_path,"intermediate", "calib_motion_compensated",'aux_camera',camera_in_order[i], timestamp+".json"), 'w') as f:
                         json.dump(calib, f, indent=2, sort_keys=True)
             else:
                 print("pose file does not exist", timestamp, nexttimestamp)
