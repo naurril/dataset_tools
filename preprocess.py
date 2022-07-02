@@ -51,10 +51,14 @@ def prepare_dirs(path):
 def generate_dataset(extrinsic_calib_path, dataset_path, timeslots, lidar_type="restored"):
     prepare_dirs(dataset_path)
     prepare_dirs(os.path.join(dataset_path, 'camera'))
+
+    if os.path.exists(os.path.join(dataset_path, 'infrared_camera')):
+        os.system("mv "+os.path.join(dataset_path, 'infrared_camera') + " " + os.path.join(dataset_path, 'aux_camera'))
+        
+    prepare_dirs(os.path.join(dataset_path, 'aux_camera'))
     prepare_dirs(os.path.join(dataset_path, 'lidar'))
     prepare_dirs(os.path.join(dataset_path, 'aux_lidar'))
-    prepare_dirs(os.path.join(dataset_path, 'radar'))
-    prepare_dirs(os.path.join(dataset_path, 'infrared_camera'))
+    prepare_dirs(os.path.join(dataset_path, 'radar'))    
 
     prepare_dirs(os.path.join(dataset_path, 'label'))
     prepare_dirs(os.path.join(dataset_path, 'ego_pose'))
@@ -92,8 +96,8 @@ def generate_dataset(extrinsic_calib_path, dataset_path, timeslots, lidar_type="
             os.system("ln -s -f  ../../../intermediate/camera/" + camera + "/aligned/*."+slot+".jpg  ./")
     
     for camera in camera_list:
-        prepare_dirs(os.path.join(dataset_path, "infrared_camera",  camera))
-        os.chdir(os.path.join(dataset_path, "infrared_camera", camera))
+        prepare_dirs(os.path.join(dataset_path, "aux_camera",  camera))
+        os.chdir(os.path.join(dataset_path, "aux_camera", camera))
 
         for slot in timeslots:
             os.system("ln -s -f  ../../../intermediate/infrared_camera/" + camera + "/aligned/*."+slot+".jpg  ./")
