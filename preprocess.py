@@ -72,7 +72,7 @@ def generate_dataset(extrinsic_calib_path, dataset_path, timeslots, lidar_type="
             prepare_dirs(os.path.join(dataset_path, "calib", "camera", camera))
             os.chdir(os.path.join(dataset_path, "calib", "camera", camera))
             for slot in timeslots:
-                os.system("ln -s -f  ../../../../intermediate/calib_motion_compensated/camera/" + camera + "/*" + slot+".json  ./")
+                os.system("ln -s -f  ../../../../intermediate/calib_motion_compensated/camera/" + camera + "/*." + slot+".json  ./")
     else:
         os.system("ln -s -f " + os.path.relpath(extrinsic_calib_path) + " ./calib")
 

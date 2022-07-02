@@ -43,11 +43,12 @@ def generate_dataset_links(src_data_folder, start_time, seconds):
     prepare_dirs('radar')
     prepare_dirs('infrared_camera')
     prepare_dirs('ego_pose')
+    prepare_dirs("calib/camera")
 
     # prepare_dirs(os.path.join(dataset_path, 'calib'))
     # prepare_dirs(os.path.join(dataset_path, 'calib/camera'))
     
-    os.system("ln -s -f ../../calib ./")
+    #os.system("ln -s -f ../../calib ./")
     
     
     os.chdir("camera")
@@ -75,8 +76,22 @@ def generate_dataset_links(src_data_folder, start_time, seconds):
         os.chdir("..")
     
 
+    
+    os.chdir("../calib/camera")
+    for camera in camera_list:
+        
+        prepare_dirs(camera)
+        os.chdir(camera)
 
-    os.chdir("..") #scene-xxx
+        for second in range(int(start_time), int(start_time) + int(seconds)):
+            for slot in slots:
+                os.system("ln -s -f  ../../../../../" + src_data_folder  + "/calib/camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".json  ./")
+        os.chdir("..")
+
+
+    os.chdir("../..") #scene-xxx
+    
+    pass
     os.chdir("lidar")
     for second in range(int(start_time), int(start_time) + int(seconds)):
         for slot in slots:
@@ -100,6 +115,8 @@ def generate_dataset_links(src_data_folder, start_time, seconds):
             for slot in slots:
                 os.system("ln -s -f  ../../../../" + src_data_folder  + "/aux_lidar/" + auxlidar + "/"+ str(second) + "." +  str(slot) + ".pcd  ./")
         os.chdir("..")
+
+    
 
 def read_scene_cfg(f):
     cfg = {}
@@ -137,7 +154,7 @@ def  regen_scene(scene_path):
         savecwd = os.getcwd()
         os.chdir(scene_path)
 
-        os.system("rm -rf camera  infrared_camera lidar aux_lidar radar ego_pose")
+        os.system("rm -r calib camera  infrared_camera lidar aux_lidar radar ego_pose")
 
         if os.path.exists("./desc.json"):
                 cfg = read_scene_cfg("./desc.json")
