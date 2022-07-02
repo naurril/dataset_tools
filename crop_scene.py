@@ -41,7 +41,7 @@ def generate_dataset_links(src_data_folder, start_time, seconds):
     prepare_dirs('label')
     prepare_dirs('aux_lidar')
     prepare_dirs('radar')
-    prepare_dirs('infrared_camera')
+    prepare_dirs('aux_camera')
     prepare_dirs('ego_pose')
     prepare_dirs("calib/camera")
     prepare_dirs("calib/aux_camera")
@@ -64,7 +64,7 @@ def generate_dataset_links(src_data_folder, start_time, seconds):
                 os.system("ln -s -f  ../../../../" + src_data_folder  + "/camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".jpg  ./")
         os.chdir("..")
     
-    os.chdir("../infrared_camera")
+    os.chdir("../aux_camera")
 
     for camera in camera_list:
         
@@ -73,7 +73,7 @@ def generate_dataset_links(src_data_folder, start_time, seconds):
 
         for second in range(int(start_time), int(start_time) + int(seconds)):
             for slot in slots:
-                os.system("ln -s -f  ../../../../" + src_data_folder  + "/infrared_camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".jpg  ./")
+                os.system("ln -s -f  ../../../../" + src_data_folder  + "/aux_camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".jpg  ./")
         os.chdir("..")
     
 
@@ -169,7 +169,7 @@ def  regen_scene(scene_path):
         savecwd = os.getcwd()
         os.chdir(scene_path)
 
-        os.system("rm -r calib camera infrared_camera lidar aux_lidar radar ego_pose")
+        os.system("rm -r calib camera infrared_camera aux_camera lidar aux_lidar radar ego_pose")
 
         if os.path.exists("./desc.json"):
                 cfg = read_scene_cfg("./desc.json")
@@ -238,13 +238,13 @@ def check_scene(scene_path):
                 f = scene_path + "/" + "camera/" + c + "/"+ str(second) + "." +  str(slot) + ".jpg"
                 checkfile(f)
     
-    checkdir(scene_path + "/" + "infrared_camera")
+    checkdir(scene_path + "/" + "aux_camera")
     for c in camera_list:
-        checkdir(scene_path + "/" + "infrared_camera/"+c)
+        checkdir(scene_path + "/" + "aux_camera/"+c)
 
         for second in range(int(start_time), int(start_time) + int(seconds)):
             for slot in slots:
-                f = scene_path + "/" + "infrared_camera/" + c + "/"+ str(second) + "." +  str(slot) + ".jpg"
+                f = scene_path + "/" + "aux_camera/" + c + "/"+ str(second) + "." +  str(slot) + ".jpg"
                 checkfile(f)
     
     checkdir(scene_path + "/" + "aux_lidar")
