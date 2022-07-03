@@ -11,6 +11,9 @@ import pcd_restore
 import json
 import numpy as np
 import math
+import argparse
+
+
 
 
 
@@ -400,76 +403,75 @@ def calib_motion_compensate(output_path): #, extrinsic_calib_path):
 #
 if __name__ == "__main__":
 
-    if len(sys.argv) >= 5:
-        _, func, intrinsic_calib_path, extrinsic_calib_path, lidar_format, raw_data_root_path = sys.argv[0:6]
+        parser = argparse.ArgumentParser(description='Preprocess dataset')
+        parser.add_argument('func', type=str, default='all', help='functions to run')
+        parser.add_argument('camera_calibration_folder', type=str,  help='camera calibration')
+        parser.add_argument('extrinsic_calibration_folder', type=str, help='lidar-camera calibration')
+        parser.add_argument('data_folder', type=str, help='lidar-camera calibration')
+        parser.add_argument('--subfolder', type=str, help='lidar-camera calibration')
+        parser.add_argument('--lidar_format', type=str, default='restored', help='restored|aligned')
 
-        raw_data_root_path = os.path.abspath(raw_data_root_path)
-        extrinsic_calib_path = os.path.abspath(extrinsic_calib_path)
-        intrinsic_calib_path = os.path.abspath(intrinsic_calib_path)
+
+        args = parser.parse_args()
+
+
+        print(args)
+
+        func = args.func
+        raw_data_root_path = args.data_folder
+        extrinsic_calib_path = os.path.abspath(args.extrinsic_calibration_folder)
+        intrinsic_calib_path = os.path.abspath(args.camera_calibration_folder)
+
 
         savecwd = os.getcwd()
         
-        if len(sys.argv) >=7:
-            subfolders = [sys.argv[6]]
+        if args.subfolder:
+            subfolders = [args.subfolder]
         else:
             subfolders = os.listdir(raw_data_root_path)
             subfolders.sort()
         
-        if True:# func=='all':
-            for f in subfolders:
-                os.chdir(savecwd)
-                print(f)
+        
+        for f in subfolders:
+            os.chdir(savecwd)
+            print(f)
 
-                raw_data_path = os.path.join(raw_data_root_path, f)
-                if os.path.isdir(raw_data_path):
-                    if f.endswith("_preprocessed"):
-                        continue
+            raw_data_path = os.path.join(raw_data_root_path, f)
+            if os.path.isdir(raw_data_path):
+                if f.endswith("_preprocessed"):
+                    continue
 
-                    if f.endswith("bagfile"):
-                        continue
+                if f.endswith("bagfile"):
+                    continue
 
-                    output_path = os.path.join(raw_data_root_path, f + "_preprocessed")
-                    
-                    if os.path.exists(output_path) and func=='all':
-                        continue
+                output_path = os.path.join(raw_data_root_path, f + "_preprocessed")
+                
+                if os.path.exists(output_path) and func=='all':
+                    continue
 
-                    if func == "rectify" or func=="all":
-                        rectify_cameras(intrinsic_calib_path, raw_data_path, output_path)
+                if func == "restore_camera" or func=="all":
+                    rectify_cameras(intrinsic_calib_path, raw_data_path, output_path)
 
-                    if func == "pose" or func=="all":
-                        generate_pose(raw_data_path, output_path)
+                if func == "generate_ego_pose" or func=="all":
+                    generate_pose(raw_data_path, output_path)
 
-                    if func == "align" or func=="all":
-                        align(raw_data_path, output_path)
+                if func == "align" or func=="all":
+                    align(raw_data_path, output_path)
 
-                    # restore shoulb be after aligned
-                    if  func == "pcd_restore" or (func =="all" and (lidar_format == "restored")):
-                        lidar_pcd_restore(output_path)
-                    
-                    if func == "calib_motion_compensate" or (func =="all" and (lidar_format == "restored")):
-                        calib_motion_compensate(output_path)
+                # restore shoulb be after aligned
+                if  func == "restore_lidar" or (func =="all" and (args.lidar_format == "restored")):
+                    lidar_pcd_restore(output_path)
+                
+                if func == "calib_motion_compensate" or (func =="all" and (args.lidar_format == "restored")):
+                    calib_motion_compensate(output_path)
 
-                    
-                    if func == "generate_dataset"  or func =="all":
-                        dataset_name = "dataset_2hz"
-                        timeslots = "000,500"
-                        generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), lidar_format)
+                
+                if func == "generate_dataset"  or func =="all":
+                    dataset_name = "dataset_2hz"
+                    timeslots = "000,500"
+                    generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), args.lidar_format)
 
-                        dataset_name = "dataset_10hz"
-                        timeslots = "?00" #"000,100,200,300,400,500,600,700,800,900"
-                        generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), lidar_format)
+                    dataset_name = "dataset_10hz"
+                    timeslots = "?00" #"000,100,200,300,400,500,600,700,800,900"
+                    generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), args.lidar_format)
 
-                    # if func == "generate_dataset_original_lidar" or func== 'all':
-                    #     dataset_name = "dataset_2hz"
-                    #     timeslots = "000,500"
-                    #     generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), 'aligned' )
-
-        else: 
-            if  func == "pcd_restore":
-                output_path = os.path.join(raw_data_root_path + "_preprocessed")
-                lidar_pcd_restore(output_path)
-
-
-    else:
-        print("func intrinsic_calib_path, extrinsic_calib_path, raw_data_path")
-        exit()
