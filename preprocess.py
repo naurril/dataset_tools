@@ -403,13 +403,13 @@ def calib_motion_compensate(output_path): #, extrinsic_calib_path):
 #
 if __name__ == "__main__":
 
-        parser = argparse.ArgumentParser(description='Preprocess dataset')
-        parser.add_argument('func', type=str, default='all', help='functions to run')
-        parser.add_argument('camera_calibration_folder', type=str,  help='camera calibration')
+        parser = argparse.ArgumentParser(description='Preprocess dataset. walk subfolders of `data_folder` processing them.')
+        parser.add_argument('func', type=str, default='all', help='functions to run: all, rectify, restore_camera, restore_lidar, generate_ego_pose, align, calib_motion_compensate, generate_dataset')
+        parser.add_argument('camera_calibration_folder', type=str,  help='camera intrinsic calibration')
         parser.add_argument('extrinsic_calibration_folder', type=str, help='lidar-camera calibration')
-        parser.add_argument('data_folder', type=str, help='lidar-camera calibration')
-        parser.add_argument('--subfolder', type=str, help='lidar-camera calibration')
-        parser.add_argument('--lidar_format', type=str, default='restored', help='restored|aligned')
+        parser.add_argument('data_folder', type=str, help='root data folder')
+        parser.add_argument('--subfolder', type=str, help='subfolder')
+        parser.add_argument('--lidar_format', type=str, default='aligned', choices=['restored', 'aligned'], help="use restored lidar or not")
 
 
         args = parser.parse_args()
