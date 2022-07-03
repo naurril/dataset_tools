@@ -108,7 +108,7 @@ def generate_dataset(extrinsic_calib_path, dataset_path, timeslots, lidar_type="
             if lidar_type == 'restored':
                 prepare_dirs(os.path.join(dataset_path, "calib", "camera"))
                 os.chdir(os.path.join(dataset_path, "calib", "camera"))
-                os.system("ln -s -f " + extrinsic_calib_path, '/camera/*' +" ./")
+                os.system("ln -s -f " + extrinsic_calib_path + '/camera/*' +" ./")
 
                 prepare_dirs(os.path.join(dataset_path, "calib", "aux_camera"))
                 os.chdir(os.path.join(dataset_path, "calib", "aux_camera"))
