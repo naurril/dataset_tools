@@ -125,6 +125,66 @@ def generate_dataset(extrinsic_calib_path, dataset_path, timeslots, lidar_type="
             os.system("ln -s -f  ../../../intermediate/aux_lidar/" + al + "/*."+slot+".pcd  ./")
 
 
+
+def generate_dataset_10hz(extrinsic_calib_path, dataset_path, lidar_type="restored"):
+    prepare_dirs(dataset_path)
+    prepare_dirs(os.path.join(dataset_path, 'camera'))
+
+    if os.path.exists(os.path.join(dataset_path, 'infrared_camera')):
+        os.system("mv "+os.path.join(dataset_path, 'infrared_camera') + " " + os.path.join(dataset_path, 'aux_camera'))
+        
+    prepare_dirs(os.path.join(dataset_path, 'aux_camera'))
+    prepare_dirs(os.path.join(dataset_path, 'lidar'))
+    prepare_dirs(os.path.join(dataset_path, 'aux_lidar'))
+    prepare_dirs(os.path.join(dataset_path, 'radar'))    
+
+    prepare_dirs(os.path.join(dataset_path, 'label'))
+    prepare_dirs(os.path.join(dataset_path, 'ego_pose'))
+
+
+    #prepare_dirs(os.path.join(dataset_path, 'calib'))
+    #prepare_dirs(os.path.join(dataset_path, 'calib/camera'))
+
+    os.chdir(dataset_path)
+
+    if lidar_type == 'restored':
+        if os.path.islink(os.path.join(dataset_path, "calib")):
+            os.system("rm calib")
+        
+        prepare_dirs(os.path.join(dataset_path, "calib", "camera"))
+        os.chdir(os.path.join(dataset_path, "calib", "camera"))
+        os.system("ln -s -f  ../../../intermediate/calib_lidar_transform/camera/* ./")
+        os.system("ln -s -f " + extrinsic_calib_path + " ./calib/camera/* ./")
+        
+        prepare_dirs(os.path.join(dataset_path, "calib", "aux_camera"))
+        os.chdir(os.path.join(dataset_path, "calib", "aux_camera"))
+        os.system("ln -s -f  ../../../intermediate/calib_lidar_transform/aux_camera/* ./")
+        os.system("ln -s -f " + extrinsic_calib_path + " ./calib/aux_camera/* ./")
+    else:
+        os.system("ln -s -f " + extrinsic_calib_path + " ./calib")
+
+
+    for camera in camera_list:
+        prepare_dirs(os.path.join(dataset_path, "camera"))
+        os.chdir(os.path.join(dataset_path, "camera"))
+        os.system("ln -s -f  ../../intermediate/camera/" + camera + "/aligned ./"+camera)
+    
+    for camera in camera_list:
+        prepare_dirs(os.path.join(dataset_path, "aux_camera"))
+        os.chdir(os.path.join(dataset_path, "aux_camera"))
+        os.system("ln -s -f  ../../intermediate/infrared_camera/" + camera + "/aligned ./"+camera)
+        
+    os.chdir(os.path.join(dataset_path, "lidar"))
+
+    os.system("ln -s -f ../../intermediate/lidar/" + lidar_type +" ./lidar")
+    
+    os.chdir(os.path.join(dataset_path, "ego_pose"))
+    os.system("ln -s -f ../../intermediate/ego_pose/aligned ./ego_pose")
+    
+    os.chdir(dataset_path)
+    os.system("ln -s -f  ../intermediate/aux_lidar ./")
+
+
 def generate_dataset_lidar_destorted(extrinsic_calib_path, dataset_path, timeslots):
 
     
@@ -471,7 +531,7 @@ if __name__ == "__main__":
                     timeslots = "000,500"
                     generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), args.lidar_format)
 
+                if func == "generate_dataset_10hz"  or func =="all":
                     dataset_name = "dataset_10hz"
-                    timeslots = "?00" #"000,100,200,300,400,500,600,700,800,900"
-                    generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), args.lidar_format)
+                    generate_dataset_10hz(extrinsic_calib_path,  os.path.join(output_path, dataset_name), args.lidar_format)
 
