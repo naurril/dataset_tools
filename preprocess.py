@@ -418,9 +418,10 @@ if __name__ == "__main__":
         print(args)
 
         func = args.func
-        raw_data_root_path = args.data_folder
+        intrinsic_calib_path = os.path.abspath(args.camera_calibration_folder)        
         extrinsic_calib_path = os.path.abspath(args.extrinsic_calibration_folder)
-        intrinsic_calib_path = os.path.abspath(args.camera_calibration_folder)
+        raw_data_root_path = args.data_folder
+        
 
 
         savecwd = os.getcwd()
@@ -464,7 +465,6 @@ if __name__ == "__main__":
                 
                 if func == "calib_motion_compensate" or (func =="all" and (args.lidar_format == "restored")):
                     calib_motion_compensate(output_path)
-
                 
                 if func == "generate_dataset"  or func =="all":
                     dataset_name = "dataset_2hz"
