@@ -420,7 +420,7 @@ if __name__ == "__main__":
         func = args.func
         intrinsic_calib_path = os.path.abspath(args.camera_calibration_folder)        
         extrinsic_calib_path = os.path.abspath(args.extrinsic_calibration_folder)
-        raw_data_root_path = args.data_folder
+        raw_data_root_path = os.path.abspath(args.data_folder)
         
 
 
