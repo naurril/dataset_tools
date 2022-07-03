@@ -12,7 +12,7 @@ import json
 import numpy as np
 import math
 
-enable_lidar_restore = False
+
 
 camera_list = [
   'front', 'front_left', 'front_right','rear',
@@ -401,17 +401,16 @@ def calib_motion_compensate(output_path): #, extrinsic_calib_path):
 if __name__ == "__main__":
 
     if len(sys.argv) >= 5:
-        _, func, intrinsic_calib_path, extrinsic_calib_path, raw_data_root_path = sys.argv[0:5]
+        _, func, intrinsic_calib_path, extrinsic_calib_path, lidar_format, raw_data_root_path = sys.argv[0:6]
 
         raw_data_root_path = os.path.abspath(raw_data_root_path)
         extrinsic_calib_path = os.path.abspath(extrinsic_calib_path)
         intrinsic_calib_path = os.path.abspath(intrinsic_calib_path)
 
         savecwd = os.getcwd()
-
-
-        if len(sys.argv) >=6:
-            subfolders = [sys.argv[5]]
+        
+        if len(sys.argv) >=7:
+            subfolders = [sys.argv[6]]
         else:
             subfolders = os.listdir(raw_data_root_path)
             subfolders.sort()
@@ -444,25 +443,26 @@ if __name__ == "__main__":
                         align(raw_data_path, output_path)
 
                     # restore shoulb be after aligned
-                    if  func == "pcd_restore" or (func =="all" and enable_lidar_restore):
+                    if  func == "pcd_restore" or (func =="all" and (lidar_format == "restored")):
                         lidar_pcd_restore(output_path)
                     
-                    if func == "calib_motion_compensate" or (func =="all" and enable_lidar_restore):
+                    if func == "calib_motion_compensate" or (func =="all" and (lidar_format == "restored")):
                         calib_motion_compensate(output_path)
 
-                    if func == "generate_dataset"  or func=="all":
+                    
+                    if func == "generate_dataset"  or func =="all":
                         dataset_name = "dataset_2hz"
                         timeslots = "000,500"
-                        generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), 'restored')
+                        generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), lidar_format)
 
                         dataset_name = "dataset_10hz"
                         timeslots = "?00" #"000,100,200,300,400,500,600,700,800,900"
-                        generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), 'restored')
+                        generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), lidar_format)
 
-                    if func == "generate_dataset_original_lidar" or func== 'all':
-                        dataset_name = "dataset_2hz_original_lidar"
-                        timeslots = "000,500"
-                        generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), 'aligned' )
+                    # if func == "generate_dataset_original_lidar" or func== 'all':
+                    #     dataset_name = "dataset_2hz"
+                    #     timeslots = "000,500"
+                    #     generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), 'aligned' )
 
         else: 
             if  func == "pcd_restore":
