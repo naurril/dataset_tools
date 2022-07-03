@@ -52,6 +52,8 @@ def prepare_dirs(path):
 # we compensate motion effect for calibration.
 
 def generate_dataset(extrinsic_calib_path, dataset_path, timeslots, lidar_type="restored"):
+    print("generate 10hz dataset",dataset_path, timeslots)
+
     prepare_dirs(dataset_path)
     prepare_dirs(os.path.join(dataset_path, 'camera'))
 
@@ -127,6 +129,7 @@ def generate_dataset(extrinsic_calib_path, dataset_path, timeslots, lidar_type="
 
 
 def generate_dataset_10hz(extrinsic_calib_path, dataset_path, lidar_type="restored"):
+    print("generate 10hz dataset",dataset_path)
     prepare_dirs(dataset_path)
     prepare_dirs(os.path.join(dataset_path, 'camera'))
 
