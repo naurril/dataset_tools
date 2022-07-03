@@ -135,7 +135,7 @@ def generate_dataset_10hz(extrinsic_calib_path, dataset_path, lidar_type="restor
         
     prepare_dirs(os.path.join(dataset_path, 'aux_camera'))
     prepare_dirs(os.path.join(dataset_path, 'lidar'))
-    prepare_dirs(os.path.join(dataset_path, 'aux_lidar'))
+    #prepare_dirs(os.path.join(dataset_path, 'aux_lidar'))
     prepare_dirs(os.path.join(dataset_path, 'radar'))    
 
     prepare_dirs(os.path.join(dataset_path, 'label'))
