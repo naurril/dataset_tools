@@ -152,8 +152,8 @@ def pcd_restore(pcdfile, outputfile, pose1_file, pose2_file, timestamp):
 
 
 if __name__ == "__main__":
-    pcd_restore("/home/lie/nas/2021-08-31/2021-08-31-02-28-58_preprocessed/intermediate/lidar/aligned/1630376972.000.pcd",
-                "/home/lie/nas/2021-08-31/2021-08-31-02-28-58_preprocessed/intermediate/lidar/restored/1630376972.000.pcd",
-                "/home/lie/nas/2021-08-31/2021-08-31-02-28-58_preprocessed/intermediate/ego_pose/aligned/1630376972.000.json",
-                "/home/lie/nas/2021-08-31/2021-08-31-02-28-58_preprocessed/intermediate/ego_pose/aligned/1630376972.100.json",
-                "1630376972.000")
+    pcd_restore("/home/lie/nas/2021-09-13/2021-09-13-08-39-11_preprocessed/intermediate/lidar/aligned/1631523695.000.pcd",
+                "/home/lie/nas/2021-09-13/2021-09-13-08-39-11_preprocessed/intermediate/lidar/restored/1631523695.000.pcd",
+                "/home/lie/nas/2021-09-13/2021-09-13-08-39-11_preprocessed/intermediate/ego_pose/aligned/1631523695.000.json",
+                "/home/lie/nas/2021-09-13/2021-09-13-08-39-11_preprocessed/intermediate/ego_pose/aligned/1631523695.100.json",
+                "1631523695.000")

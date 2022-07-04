@@ -1,6 +1,10 @@
 
 import os
+from re import sub
 import sys
+import argparse
+
+
 #
 # all links are relative path.
 #
@@ -33,7 +37,7 @@ def generate_unique_scene_id():
     return maxid+1
 
 # in dataset folder
-def generate_dataset_links(src_data_folder, start_time, seconds):
+def generate_dataset_links(src_data_folder, start_time, seconds, sub_actions=""):
     cwd = os.getcwd()
 
     prepare_dirs('camera')
@@ -50,91 +54,105 @@ def generate_dataset_links(src_data_folder, start_time, seconds):
     # prepare_dirs(os.path.join(dataset_path, 'calib/camera'))
     
     #os.system("ln -s -f ../../calib ./")
-    
-    
-    os.chdir("camera")
+    if len(sub_actions)>0:
+        sub_actions = sub_actions.split(",")
+    else:
+        sub_actions = ['camera','aux_camera','lidar','calib', 'ego_pose', 'aux_lidar']
 
-    for camera in camera_list:
+    print(sub_actions)
+    for action in sub_actions:
+        if action == 'camera':
+            os.chdir("camera")
+
+            for camera in camera_list:
+                
+                prepare_dirs(camera)
+                os.chdir(camera)
+
+                for second in range(int(start_time), int(start_time) + int(seconds)):
+                    for slot in slots:
+                        os.system("ln -s -f  ../../../../" + src_data_folder  + "/camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".jpg  ./")
+                os.chdir("..")
+            os.chdir("..")
+
+        elif action == 'aux_camera':
+            os.chdir("aux_camera")
+
+            for camera in camera_list:
+                
+                prepare_dirs(camera)
+                os.chdir(camera)
+
+                for second in range(int(start_time), int(start_time) + int(seconds)):
+                    for slot in slots:
+                        os.system("ln -s -f  ../../../../" + src_data_folder  + "/aux_camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".jpg  ./")
+                os.chdir("..")
+            
+
+            
+            os.chdir("..")
         
-        prepare_dirs(camera)
-        os.chdir(camera)
+        elif action == 'calib':
+            os.chdir("calib/camera")
+            
+            #link basic calibration parameters
+            os.system("ln -s -f ../../../../calib_2/camera/*.json ./")
 
-        for second in range(int(start_time), int(start_time) + int(seconds)):
-            for slot in slots:
-                os.system("ln -s -f  ../../../../" + src_data_folder  + "/camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".jpg  ./")
-        os.chdir("..")
-    
-    os.chdir("../aux_camera")
+            for camera in camera_list:
+                prepare_dirs(camera)
+                os.chdir(camera)
 
-    for camera in camera_list:
-        
-        prepare_dirs(camera)
-        os.chdir(camera)
+                for second in range(int(start_time), int(start_time) + int(seconds)):
+                    for slot in slots:
+                        os.system("ln -s -f  ../../../../../" + src_data_folder  + "/calib/camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".json  ./")
+                os.chdir("..")
 
-        for second in range(int(start_time), int(start_time) + int(seconds)):
-            for slot in slots:
-                os.system("ln -s -f  ../../../../" + src_data_folder  + "/aux_camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".jpg  ./")
-        os.chdir("..")
-    
+            os.chdir("../..") #scene-xxx
+            
 
-    
-    os.chdir("..")
-    os.chdir("calib/camera")
-    
-    #link basic calibration parameters
-    os.system("ln -s ../../../../calib_2/camera/*.json ./")
+            os.chdir("calib/aux_camera")
+            os.system("ln -s -f ../../../../calib_2/aux_camera/*.json ./")
 
-    for camera in camera_list:
-        prepare_dirs(camera)
-        os.chdir(camera)
+            for camera in camera_list:
+                prepare_dirs(camera)
+                os.chdir(camera)
 
-        for second in range(int(start_time), int(start_time) + int(seconds)):
-            for slot in slots:
-                os.system("ln -s -f  ../../../../../" + src_data_folder  + "/calib/camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".json  ./")
-        os.chdir("..")
+                for second in range(int(start_time), int(start_time) + int(seconds)):
+                    for slot in slots:
+                        os.system("ln -s -f  ../../../../../" + src_data_folder  + "/calib/aux_camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".json  ./")
+                os.chdir("..")
 
-    os.chdir("../..") #scene-xxx
-    
+            os.chdir("../..") #scene-xxx
 
-    os.chdir("calib/aux_camera")
-    os.system("ln -s ../../../../calib_2/aux_camera/*.json ./")
+        elif action == 'lidar':            
+            os.chdir("lidar")
+            for second in range(int(start_time), int(start_time) + int(seconds)):
+                for slot in slots:
+                    os.system("ln -s -f ../../../" + src_data_folder + "/lidar/" + str(second) + "." +  str(slot) +".pcd ./")
+            os.chdir("..")
 
-    for camera in camera_list:
-        prepare_dirs(camera)
-        os.chdir(camera)
+        elif action == 'ego_pose':
+            os.chdir("ego_pose")
+            for second in range(int(start_time), int(start_time) + int(seconds)):
+                for slot in slots:
+                    os.system("ln -s -f ../../../" + src_data_folder + "/ego_pose/" + str(second) + "." +  str(slot) +".json ./")
+            os.chdir("..")
 
-        for second in range(int(start_time), int(start_time) + int(seconds)):
-            for slot in slots:
-                os.system("ln -s -f  ../../../../../" + src_data_folder  + "/calib/aux_camera/" + camera + "/"+ str(second) + "." +  str(slot) + ".json  ./")
-        os.chdir("..")
+        elif action == 'aux_lidar':
+            os.chdir("aux_lidar")
 
-    os.chdir("../..") #scene-xxx
+            for auxlidar in aux_lidar_list:
+                
+                prepare_dirs(auxlidar)
+                os.chdir(auxlidar)
 
-    os.chdir("lidar")
-    for second in range(int(start_time), int(start_time) + int(seconds)):
-        for slot in slots:
-            os.system("ln -s -f ../../../" + src_data_folder + "/lidar/" + str(second) + "." +  str(slot) +".pcd ./")
-    
+                for second in range(int(start_time), int(start_time) + int(seconds)):
+                    for slot in slots:
+                        os.system("ln -s -f  ../../../../" + src_data_folder  + "/aux_lidar/" + auxlidar + "/"+ str(second) + "." +  str(slot) + ".pcd  ./")
+                os.chdir("..")
 
-    os.chdir("../ego_pose")
-    for second in range(int(start_time), int(start_time) + int(seconds)):
-        for slot in slots:
-            os.system("ln -s -f ../../../" + src_data_folder + "/ego_pose/" + str(second) + "." +  str(slot) +".json ./")
-    
-
-    os.chdir("../aux_lidar")
-
-    for auxlidar in aux_lidar_list:
-        
-        prepare_dirs(auxlidar)
-        os.chdir(auxlidar)
-
-        for second in range(int(start_time), int(start_time) + int(seconds)):
-            for slot in slots:
-                os.system("ln -s -f  ../../../../" + src_data_folder  + "/aux_lidar/" + auxlidar + "/"+ str(second) + "." +  str(slot) + ".pcd  ./")
-        os.chdir("..")
-
-    
+        else:
+            print("unknown action", action)
 
 def read_scene_cfg(f):
     cfg = {}
@@ -168,11 +186,14 @@ def regen_context(scene_path):
 
         os.chdir(savecwd)
 
-def  regen_scene(scene_path):
+def  regen_scene(scene_path, sub_actions):
+        print("regen", scene_path)
         savecwd = os.getcwd()
         os.chdir(scene_path)
 
-        os.system("rm -r calib camera infrared_camera aux_camera lidar aux_lidar radar ego_pose")
+        #os.system("rm -r calib camera infrared_camera aux_camera lidar aux_lidar radar ego_pose")
+        os.system("rm calib")
+        os.system("mv infrared_camera aux_camera")
 
         if os.path.exists("./desc.json"):
                 cfg = read_scene_cfg("./desc.json")
@@ -183,7 +204,7 @@ def  regen_scene(scene_path):
                 seconds  =cfg["seconds"]
 
 
-                generate_dataset_links(src_data_folder, start_time, seconds)
+                generate_dataset_links(src_data_folder, start_time, seconds, sub_actions)
         else:
             print("desc.json doesn't exist!")
             print("execute this command in scene folder")
@@ -338,6 +359,8 @@ def generate_dataset(src_data_folder, scene_id, start_time, seconds, desc):
 
 if __name__ == "__main__":
 
+
+
     cmd = sys.argv[1]
     if cmd == "generate":
         if len(sys.argv) == 7:
@@ -349,12 +372,17 @@ if __name__ == "__main__":
     elif cmd == "regen":
         # try regenerate scene data
         # precondition: the desc.json exists
-
-        scene_path = "./"
-        if len(sys.argv) == 3:
-            scene_path = sys.argv[2]
         
-        regen_scene(scene_path)
+        scene_path = "./"
+        if len(sys.argv) >= 3:
+            scene_path = sys.argv[2]
+
+        if len(sys.argv) >= 4:
+            sub_actions = sys.argv[3]
+        
+        
+        regen_scene(scene_path, sub_actions)
+
     elif cmd == "regencontext":
         scene_path = "./"
         if len(sys.argv) == 3:
