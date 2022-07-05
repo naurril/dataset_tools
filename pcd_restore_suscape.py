@@ -4,7 +4,7 @@ import os
 import json
 import pcd_restore
 
-raw_data_root_path = "~/nas"
+raw_data_root_path = "/home/lie/nas"
 
 
 # if __name__ == "__main__":
@@ -39,6 +39,7 @@ if __name__ == "__main__":
     frames = os.listdir(os.path.join(scene_path, 'lidar'))
 
     for f in frames:
+        print(f)
         timestamp = os.path.splitext(f)[0]
         aligned = os.path.join(raw_data_folder, 'lidar', 'aligned', f)
         restored = os.path.join(raw_data_folder, 'lidar', 'restored', f)
