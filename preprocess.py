@@ -21,7 +21,8 @@ camera_list = [
   'front', 'front_left', 'front_right','rear',
   'rear_left', 'rear_right']
 
-aux_lidar_list=['front','rear','left','right']
+aux_lidar_list=[] #['front','rear','left','right']
+
 camera_time_offset = {
     'rear': 0,
     'rear_left': -17,
@@ -30,6 +31,12 @@ camera_time_offset = {
     'front_right': -67,
     'rear_right': -83,
 }
+
+
+radar_list = [
+    'points_front', 'points_front_left', 'points_front_right','points_rear', 'points_rear_left', 'points_rear_right',
+    'tracks_front', 'tracks_front_left', 'tracks_front_right','tracks_rear', 'tracks_rear_left', 'tracks_rear_right'
+]
 
 
 def rectify_one_camera(camera, calib_path, raw_data_path, output_path):
@@ -151,8 +158,15 @@ def generate_dataset(extrinsic_calib_path, dataset_path, timeslots, lidar_type="
 
                 for slot in timeslots:
                     os.system("ln -s -f  ../../../intermediate/aux_lidar/" + al + "/*"+slot+".pcd  ./")
+        
+        if action == 'radar':
+            for r in radar_list:                
+                dir = os.path.join(dataset_path, "radar", r)
+                prepare_dirs(dir)
+                os.chdir(dir)
 
-
+                for slot in timeslots:
+                    os.system("ln -s -f  ../../../intermediate/radar/" + r + "/*"+slot+".pcd  ./")
 
 def generate_dataset_10hz(extrinsic_calib_path, dataset_path, lidar_type="restored", sub_actions=""):
     print("generate 10hz dataset",dataset_path)
@@ -307,8 +321,27 @@ def align(raw_data_path, output_path):
                                      0,
                                      30, 100)
         
-        
-        
+
+def align_radar(raw_data_path, output_path):
+    radar_list = [ 'front', 'front_left', 'front_right','rear', 'rear_left', 'rear_right']
+
+    for r in radar_list:
+        align_frame_time.link_one_folder(os.path.join(raw_data_path, 'radar_points', r),
+                                    os.path.join(output_path, 'intermediate', 'radar', "points_"+r),
+                                    0,
+                                    20,
+                                    0,
+                                    50,
+                                    "")
+    for r in radar_list:
+        align_frame_time.link_one_folder(os.path.join(raw_data_path, 'radar_tracks', r),
+                                    os.path.join(output_path, 'intermediate', 'radar', "tracks_"+r),
+                                    0,
+                                    20,
+                                    0,
+                                    50,
+                                    "")
+
 def timestamp_add(ts, delta_ms):
     [s,ms] = ts.split(".")
     s = int(s)
@@ -471,11 +504,11 @@ def calib_motion_compensate(output_path): #, extrinsic_calib_path):
 if __name__ == "__main__":
 
         parser = argparse.ArgumentParser(description='Preprocess dataset. walk subfolders of `data_folder` processing them.')
-        parser.add_argument('func', type=str, default='all', help='functions to run: all, rectify, restore_camera, restore_lidar, generate_ego_pose, align, calib_motion_compensate, generate_dataset')
+        parser.add_argument('func', type=str, default='all', help='functions to run: all, rectify, restore_camera, restore_lidar, generate_ego_pose, align, align_radar, calib_motion_compensate, generate_dataset')
         parser.add_argument('camera_calibration_folder', type=str,  help='camera intrinsic calibration')
         parser.add_argument('extrinsic_calibration_folder', type=str, help='lidar-camera calibration')
         parser.add_argument('data_folder', type=str, help='root data folder')
-        parser.add_argument('--subfolder', type=str, help='subfolder')
+        parser.add_argument('--sub_folder', type=str, help='sub_folder')
         parser.add_argument('--lidar_format', type=str, default='aligned', choices=['restored', 'aligned'], help="use restored lidar or not")
         parser.add_argument('--sub_actions', type=str, default='', help="sub actions, depend on `func`")
         parser.add_argument('--time_slots', type=str, default='000,500', help="for generate dataset")
@@ -496,8 +529,8 @@ if __name__ == "__main__":
 
         savecwd = os.getcwd()
         
-        if args.subfolder:
-            subfolders = [args.subfolder]
+        if args.sub_folder:
+            subfolders = [args.sub_folder]
         else:
             subfolders = os.listdir(raw_data_root_path)
             subfolders.sort()
@@ -529,6 +562,9 @@ if __name__ == "__main__":
                 if func == "align" or func=="all":
                     align(raw_data_path, output_path)
 
+                if func == 'align_radar':
+                    align_radar(raw_data_path, output_path)
+
                 # restore shoulb be after aligned
                 if  func == "restore_lidar" or (func =="all" and (args.lidar_format == "restored")):
                     lidar_pcd_restore(output_path)
@@ -536,12 +572,12 @@ if __name__ == "__main__":
                 if func == "calib_motion_compensate" or (func =="all" and (args.lidar_format == "restored")):
                     calib_motion_compensate(output_path)
                 
-                if func == "generate_dataset"  or func =="all":
+                if func == "generate_dataset":
                     dataset_name = "dataset_2hz"
                     timeslots = "000,500"
                     generate_dataset(extrinsic_calib_path,  os.path.join(output_path, dataset_name), timeslots.split(","), args.lidar_format, args.sub_actions)
 
-                if func == "generate_dataset_10hz"  or func =="all":
+                if func == "generate_dataset_10hz":
                     dataset_name = "dataset_10hz"
                     generate_dataset_10hz(extrinsic_calib_path,  os.path.join(output_path, dataset_name), args.lidar_format, args.sub_actions)
 

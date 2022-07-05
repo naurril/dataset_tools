@@ -19,6 +19,10 @@ dataset_root = "/home/lie/nas"
 camera_list = ["front", "front_right", "front_left", "rear_left", "rear_right", "rear"]
 aux_lidar_list = ["front","left","right","rear"]
 slots = ["000", "500"]
+radar_list = [
+    'points_front', 'points_front_left', 'points_front_right','points_rear', 'points_rear_left', 'points_rear_right',
+    'tracks_front', 'tracks_front_left', 'tracks_front_right','tracks_rear', 'tracks_rear_left', 'tracks_rear_right'
+]
 
 def prepare_dirs(path):
     if not os.path.exists(path):
@@ -150,6 +154,18 @@ def generate_dataset_links(src_data_folder, start_time, seconds, sub_actions="")
                     for slot in slots:
                         os.system("ln -s -f  ../../../../" + src_data_folder  + "/aux_lidar/" + auxlidar + "/"+ str(second) + "." +  str(slot) + ".pcd  ./")
                 os.chdir("..")
+        elif action == 'radar':
+            os.chdir("radar")
+
+            for radar in radar_list:
+                
+                prepare_dirs(radar)
+                os.chdir(radar)
+
+                for second in range(int(start_time), int(start_time) + int(seconds)):
+                    for slot in slots:
+                        os.system("ln -s -f  ../../../../" + src_data_folder  + "/radar/" + radar + "/"+ str(second) + "." +  str(slot) + ".pcd  ./")
+                os.chdir("..")
 
         else:
             print("unknown action", action)
@@ -192,8 +208,8 @@ def  regen_scene(scene_path, sub_actions):
         os.chdir(scene_path)
 
         #os.system("rm -r calib camera infrared_camera aux_camera lidar aux_lidar radar ego_pose")
-        os.system("rm calib")
-        os.system("mv infrared_camera aux_camera")
+        #os.system("rm calib")
+        #os.system("mv infrared_camera aux_camera")
 
         if os.path.exists("./desc.json"):
                 cfg = read_scene_cfg("./desc.json")

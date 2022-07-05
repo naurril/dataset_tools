@@ -23,12 +23,12 @@ def format_msec(msec):
     #         s = s[0:1]
     return s
 
-def link_one_folder(src_folder, dst_folder, timestamp_offset_ms, jitter=30, delay=0, period=100):
+def link_one_folder(src_folder, dst_folder, timestamp_offset_ms, jitter=30, delay=0, period=100, ln_options="-f"):
     if not os.path.exists(dst_folder):
         os.makedirs(dst_folder)
     
     os.chdir(dst_folder)
-    os.system("rm *")
+    #os.system("rm *")
     
     src_folder = os.path.relpath(src_folder)  # use relative path
     
@@ -41,7 +41,7 @@ def link_one_folder(src_folder, dst_folder, timestamp_offset_ms, jitter=30, dela
 
 
             #print(file, sec, msec)   # 20ms jitter
-            os.system("ln -s -f "+src_folder + "/" + file + " " + dst_folder +"/" + str(sec) +"." + format_msec(msec) + "."+ext)
+            os.system("ln -s "+ln_options +" " + src_folder + "/" + file + " " + dst_folder +"/" + str(sec) +"." + format_msec(msec) + "."+ext)
             bar.next()
 
 
