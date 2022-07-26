@@ -4,7 +4,7 @@
 import argparse
 import os
 from select import select
-
+import re
 
 camera_list = ["front", "front_right", "front_left", "rear_left", "rear_right", "rear"]
 aux_lidar_list = ["front","left","right","rear"]
@@ -22,7 +22,7 @@ def prepare_dirs(path):
 
 
 # in dataset folder
-def generate_dataset_links(src_data_folder, start_time, end_time, sub_actions=""):
+def generate_dataset_links(src_data_folder, start_time, end_time, exclude='', sub_actions=""):
    
     # assume we are already in target folder
     # and src_data_folder is abs path
@@ -57,6 +57,10 @@ def generate_dataset_links(src_data_folder, start_time, end_time, sub_actions=""
             return False
         if end_time and f > end_time:
             return False
+        
+        if exclude and re.fullmatch(exclude, f):
+            return False
+
         return True
 
 
@@ -165,11 +169,16 @@ def generate_dataset_links(src_data_folder, start_time, end_time, sub_actions=""
         else:
             print("unknown action", action)
 
-def generate_dataset(src_dataset_folder, target_dataset_folder, start_time, end_time, desc):
+def generate_dataset(src_dataset_folder, target_dataset_folder,desc, start_time, end_time, exclude):
     
     savecwd = os.getcwd()
 
+    if os.path.exists(target_dataset_folder):
+        print("destination folder exists.")
+        return
     prepare_dirs(target_dataset_folder)
+
+
     os.chdir(target_dataset_folder)
     src_dataset_folder = os.path.abspath(src_dataset_folder)
     with open("./desc.json", "w") as f:
@@ -182,7 +191,7 @@ def generate_dataset(src_dataset_folder, target_dataset_folder, start_time, end_
             '}\n'
         ])
 
-    generate_dataset_links(src_dataset_folder, start_time, end_time)
+    generate_dataset_links(src_dataset_folder, start_time, end_time, exclude)
 
     os.chdir(savecwd)
     return id
@@ -197,10 +206,11 @@ if __name__ == "__main__":
     parser.add_argument('desc', type=str, help='')
     parser.add_argument('--start', type=str, help='')
     parser.add_argument('--end', type=str, help='')    
+    parser.add_argument('--exclude', type=str, help='regular expression pattern')
     parser.add_argument('--sub_actions', type=str, help='')
     
     args = parser.parse_args()
 
     print(args)
-    generate_dataset(args.src, args.target, args.start, args.end, args.desc)
+    generate_dataset(args.src, args.target, args.desc, args.start, args.end, args.exclude)
 
