@@ -3,7 +3,7 @@ import sys
 import os
 import json
 import pcd_restore
-
+import time
 raw_data_root_path = "/home/lie/nas"
 
 
@@ -28,7 +28,7 @@ def timestamp_add(ts, delta_ms):
     
 if __name__ == "__main__":
     scene_path = sys.argv[1]
-
+    print(time.asctime(), scene_path)
     with open(os.path.join(scene_path, 'desc.json')) as f:
         desc = json.load(f)
 
@@ -37,9 +37,8 @@ if __name__ == "__main__":
     
     
     frames = os.listdir(os.path.join(scene_path, 'lidar'))
-
+    frames.sort()
     for f in frames:
-        print(f)
         timestamp = os.path.splitext(f)[0]
         aligned = os.path.join(raw_data_folder, 'lidar', 'aligned', f)
         restored = os.path.join(raw_data_folder, 'lidar', 'restored', f)
@@ -47,4 +46,3 @@ if __name__ == "__main__":
         egopose_end = os.path.join(raw_data_folder, 'ego_pose', 'aligned', timestamp_add(timestamp, 100)+".json")
         #print(aligned, restored, egopose_begin, egopose_end, timestamp)
         pcd_restore.pcd_restore(aligned, restored, egopose_begin, egopose_end, timestamp)
-    

@@ -25,6 +25,11 @@ def rectify_image(calib, filein, fileout):
     undist = cv2.undistort(img, calib["camera_matrix"], calib["distortion_coefficients"])
     cv2.imwrite(fileout, undist)
 
+def color_infrared_image(filein, fileout):
+    im_gray = cv2.imread(filein, cv2.IMREAD_GRAYSCALE)
+    im_color = cv2.applyColorMap(im_gray, cv2.COLORMAP_JET)
+    cv2.imwrite(fileout, im_color)
+
 
 def rectify_folder(calib_file, in_folder, out_folder):
     print('recitify folder: ', calib_file, in_folder, out_folder)
@@ -43,7 +48,23 @@ def rectify_folder(calib_file, in_folder, out_folder):
             else:
                 print("ignore", os.path.join(in_folder, f))
             bar.next()
+
+def color_folder(in_folder, out_folder):
+    print('color folder: ', in_folder, out_folder)
+    if not os.path.exists(out_folder):
+        os.makedirs(out_folder)
     
+    files = os.listdir(in_folder)
+    files.sort()
+    with Bar('Processing', max=len(files)) as bar:
+        for f in files:
+            if os.path.isfile( os.path.join(in_folder, f)):
+                color_infrared_image(os.path.join(in_folder, f), os.path.join(out_folder, f))
+            else:
+                print("ignore", os.path.join(in_folder, f))
+            bar.next()
+
+
 if __name__=="__main__":
     if len(sys.argv) != 4:
         print("rectify.py yaml in out")

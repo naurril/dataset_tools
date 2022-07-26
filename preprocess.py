@@ -49,6 +49,9 @@ def rectify_one_infrared_camera(camera, calib_path, raw_data_path, output_path):
     rectify_image.rectify_folder(calib_file, 
                                 os.path.join(raw_data_path, 'infrared_camera', camera, 'image_color'),
                                 os.path.join(output_path, 'intermediate', 'infrared_camera', camera, 'rectified'))
+def color_one_infrared_camera(camera, raw_data_path, output_path):
+    rectify_image.color_folder(os.path.join(output_path, 'intermediate', 'infrared_camera',  camera, 'rectified'),
+                                os.path.join(output_path, 'intermediate', 'infrared_camera', camera, 'colored'))
 
 def prepare_dirs(path):
     if not os.path.exists(path):
@@ -177,7 +180,7 @@ def generate_dataset_10hz(extrinsic_calib_path, dataset_path, lidar_type="restor
         os.system("mv "+os.path.join(dataset_path, 'infrared_camera') + " " + os.path.join(dataset_path, 'aux_camera'))
         
     prepare_dirs(os.path.join(dataset_path, 'aux_camera'))
-    prepare_dirs(os.path.join(dataset_path, 'lidar'))
+    #prepare_dirs(os.path.join(dataset_path, 'lidar'))
     #prepare_dirs(os.path.join(dataset_path, 'aux_lidar'))
     prepare_dirs(os.path.join(dataset_path, 'radar'))    
 
@@ -217,9 +220,10 @@ def generate_dataset_10hz(extrinsic_calib_path, dataset_path, lidar_type="restor
         os.chdir(os.path.join(dataset_path, "aux_camera"))
         os.system("ln -s -f  ../../intermediate/infrared_camera/" + camera + "/aligned ./"+camera)
         
-    os.chdir(os.path.join(dataset_path, "lidar"))
-
-    os.system("ln -s -f ../../intermediate/lidar/" + lidar_type +" ./lidar")
+    os.chdir(os.path.join(dataset_path))
+    print(os.getcwd())
+    print("ln -s ../intermediate/lidar/" + lidar_type +" lidar")
+    os.system("ln -s ../intermediate/lidar/" + lidar_type +" lidar")
     
     os.chdir(os.path.join(dataset_path, "ego_pose"))
     os.system("ln -s -f ../../intermediate/ego_pose/aligned ./ego_pose")
@@ -283,6 +287,10 @@ def rectify_cameras(intrinsic_calib_path, raw_data_path, output_path):
         for camera in camera_list:
             rectify_one_camera(camera, intrinsic_calib_path, raw_data_path, output_path)
             rectify_one_infrared_camera(camera, intrinsic_calib_path, raw_data_path, output_path)
+
+def color_infrared_image(raw_data_path, output_path):
+    for camera in camera_list:
+            color_one_infrared_camera(camera, raw_data_path, output_path)
 
 def align(raw_data_path, output_path):
         print(output_path)
@@ -555,6 +563,9 @@ if __name__ == "__main__":
 
                 if func == "restore_camera" or func=="all":
                     rectify_cameras(intrinsic_calib_path, raw_data_path, output_path)
+
+                if func == 'color_infrared_image' or func == 'all':
+                    color_infrared_image(raw_data_path, output_path)
 
                 if func == "generate_ego_pose" or func=="all":
                     generate_pose(raw_data_path, output_path)
