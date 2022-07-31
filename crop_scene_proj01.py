@@ -187,7 +187,8 @@ def generate_dataset(src_dataset_folder, target_dataset_folder,desc, start_time,
             '"scene":"' + desc +'\",\n',
             '"folder":"' + src_dataset_folder +'\",\n',
             '"starttime":"' + str(start_time) +'\",\n',
-            '"endtime":"' + str(end_time) +'\"\n',
+            '"endtime":"' + str(end_time) +'\",\n',
+            '"exclude":"' + str(exclude) +'\"\n',
             '}\n'
         ])
 
